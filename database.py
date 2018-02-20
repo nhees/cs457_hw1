@@ -24,7 +24,7 @@ class Database:
 
     def drop(self):
         filepath = "PA1/"+self.name+""
-        os.rmdir(filepath)
+        os.system("rm -rf " + filepath)
         #creating the directory to represent the database
         #print("creating a database with the name "+ self.name +" ")
         #create a folder/ file database metadata
