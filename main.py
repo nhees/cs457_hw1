@@ -13,6 +13,8 @@ def main():
 		#runs through the input and processes all of the commands
 		sqlInput = input()
 		while sqlInput.lower() != ".exit":
+			while sqlInput[:2] != "--" and len(sqlInput) != 0 and sqlInput[-1] != ";":
+				sqlInput += input(".. > ") # allow multi-line input
 			parse_line(sqlInput.split(";")[0])#,currentDb)
 			sqlInput = input()
 	except EOFError:
@@ -40,43 +42,34 @@ def parse_line(line):#, currentDb):
 					if not TableExist(words[2], currentDb):
 						currentTable = Table(words[2], currentDb)
 						currentTable.create()
-						print("create_table(" + words[2] + ")")
-
 
 						currentWord = 3
 						wordCount = len(words)
 						nextWord = words[currentWord]
 						#this while loop will run through and
 						while currentWord < wordCount:
+							atrName = words[currentWord].strip("()")
 							if words[currentWord + 1][:3] == "int":
-								print("about to call function")
-								atrName = words[currentWord].strip("()")
 								currentTable.add_column(int,atrName, 0)
-								print(" add_column(" + words[2] + ", int" + ", " + words[currentWord].strip("()") + ")")
 							elif words[currentWord + 1][:5] == "float":
-								currentTable.add_column(float,words[currentWord].strip("()"), 0)
-								print(" add_column(" + words[2] + ", float" + ", " + words[currentWord].strip("()") + ")")
+								currentTable.add_column(float,atrName, 0)
 							elif words[currentWord + 1][:4] == "char":
-								char = "char"
-								currentTable.add_column(char,words[currentWord].strip("()"), words[currentWord + 1][4:].strip("()") )
-								print(" add_column(" + words[2] + ", char" + ", " + words[currentWord + 1][4:].strip("()") + ", " + words[currentWord].strip("()") + ")")
+								currentTable.add_column("char",atrName, words[currentWord + 1][4:].strip("()") )
 							elif words[currentWord + 1][:7] == "varchar":
-								varchar = "varchar"
-								currentTable.add_column(varchar,words[currentWord].strip("()"), words[currentWord + 1][7:].strip("()") )
-								print(" add_column(" + words[2] + ", varchar" + ", " + words[currentWord + 1][7:].strip("()") + ", " + words[currentWord].strip("()") + ")")
+								currentTable.add_column("varchar",atrName, words[currentWord + 1][7:].strip("()") )
 							currentWord += 2
-
-							print(" --")
+						print("Table '" + words[2] + "' created")
 					else:
-						print("table"+ words[2] +" already exists")
+						print("!Failed to create table '"+ words[2] +"' because it already exists")
 
 			elif words[0].lower() == "drop":
 				if words[1].lower() == "table":
 					if TableExist(words[2], currentDb):
 						currentTable = Table(words[2], currentDb)
-						print("drop_table(" + words[2] + ")")
+						currentTable.drop()
+						print("Table '" + words[2] + "' deleted")
 					else:
-						print("ERROR: Table doesn't exist")
+						print("!Failed to delete table '" + words[2] + "' because it does not exist")
 				elif words[1].lower() == "database":
 					if Exists(words[2]):# delete from list
 							found = False
@@ -90,29 +83,35 @@ def parse_line(line):#, currentDb):
 								DropDb.drop()
 							print("drop_database(" + words[2] + ")")
 					else:
-						print("Database doesn't exist")
+						print("!Failed to delete database '" + words[2] + "' because it does not exist")
 
 			elif words[0].lower() == "select":
-				print("select(" + words[3] + ", " + words[1] + ")")
+				if TableExist(words[3], currentDb):
+					currentTable = Table(words[3], currentDb)
+					currentTable.select(words[1])
+				else:
+					print("!Failed to query table '" + words[3] + "' because it does not exist")
 
 			elif words[0].lower() == "use": # should make sure the db exist
 				if Exists(words[1]):
 					currentDb = words[1]
-					print("use_database(" + words[1] + ")")
+					print("Using database '" + words[1] + "'")
 				else:
-					print("database doesn't exist")
+					print("!Failed to use database '" + words[1] + "' because it does not exist")
 
 			elif words[0].lower() == "alter":
 				if words[1].lower() == "table":
 					if words[3].lower() == "add":
+						currentTable = Table(words[2], currentDb)
 						if words[5] == "int":
-							print("add_column(" + words[2] + ", int" + ", " + words[4] + ")")
+							currentTable.add_column(int,words[4], 0)
 						elif words[5]== "float":
-							print("add_column(" + words[2] + ", float" + ", " + words[4] + ")")
+							currentTable.add_column(float, words[4], 0)
 						elif words[5][:4] == "char":
-							print("add_column(" + words[2] + ", char" + ", " + words[5][4:].strip("()") + ", " + words[4] + ")")
+							currentTable.add_column("char", words[4], words[5][4:].strip("()"))
 						elif words[5][:7] == "varchar":
-							print("add_column(" + words[2] + ", varchar" + ", " + words[5][7:].strip("()") + ", " + words[4] + ")")
+							currentTable.add_column("varchar", words[4], words[5][7:].strip("()"))
+						print("Table '" + words[2] + "' modified")
 			else:
 				print("Invalid keyword: " + words[0])
 		except IndexError:
@@ -126,16 +125,10 @@ def Exists (name):
 #	print("The current filepath: "+filePath+"")
 	if os.path.exists(filePath):
 			return True
-
 	else:
 			return False
 
-    #    for current in dbName:
-    #        if current.name == name:
-    #            return True
 
-    #    return False
-    #return name in dbName
 def TableExist(tname, currentDb):
 		filePath = "PA1/"+currentDb+"/"+tname+".txt"
 		return os.path.isfile(filePath)

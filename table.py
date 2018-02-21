@@ -1,3 +1,5 @@
+import os
+
 class Table:
 # should the table be a list of lists?????
     #constructor
@@ -20,18 +22,22 @@ class Table:
     #deletes the table file
     def drop(self):
         os.remove(self.filePath)
+
         #delete file and metadata from the metadata file
 
 # displays the table information
-    def select(self):
-        print("selecting the table")
-            #print the table info
-                # print whatever is in the datafile
+    def select(self, selected):
+        tbFile = open(self.filePath, "r")
+        metadata = tbFile.readline()
+        attributes = metadata.split("|")
 
-#alters the table information
-    def alter(self):
-        print("altering the table")
-        # alter the metadata???/ data
+        selectedMetaData = ""
+
+        for attribute in attributes:
+            if len(attribute) > 0 and ((attribute.split(" "))[0] == selected or selected == "*"): # allows for selecting all or a single column
+                selectedMetaData += (attribute + " | ")
+
+        print(selectedMetaData)
 
 #adds and attribute to the table
     def add_column(self,type, name, length):
@@ -39,10 +45,10 @@ class Table:
         file = open(self.filePath,"a")
 
         if(type == int):
-            file.write("| "+name +" int")
+            file.write(name +" int" + "|")
         elif(type == float):
-            file.write("| "+name+" float")
+            file.write(name+" float" + "|")
         elif(type == "char"):
-            file.write("| " +name+ " char("+ length +")")
+            file.write(name+ " char("+ length +")" + "|")
         else:
-            file.write("| " + name + " varchar("+length+")")
+            file.write(name + " varchar("+length+")" + "|")
