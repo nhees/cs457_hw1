@@ -13,7 +13,7 @@ table.py
 This file holds the table class. The tables are represented by a file within the appropriate database folder. The first line of the file will holds the attribute types and names. The attributes are added via the add_column function within the class. The create table adds the file. The drop table deletes the file. The select function allows the user to view requested parts of the table and alter lets the user change the attribute types within the table.
 
 
-To run: python3 pa1.py < <fileName>.sql OR
-        python 3 pa1.py
+To run: python3 pa1.py < (fileName).sql OR
+        python3 pa1.py
 
 PLEASE NOTE ALL OUTPUT IS LOCATED IN A FOLDER NAMED PA1
