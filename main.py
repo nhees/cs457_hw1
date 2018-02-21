@@ -3,13 +3,14 @@ import os
 from database import Database
 from table import Table
 
+dbNames =[]
 currentDb = "NA"
 
 def main():
-	#currentDb = "NA"
-#    dbs = []
+
 
 	try:
+		#runs through the input and processes all of the commands
 		sqlInput = input()
 		while sqlInput.lower() != ".exit":
 			parse_line(sqlInput.split(";")[0])#,currentDb)
@@ -17,9 +18,10 @@ def main():
 	except EOFError:
 		pass # exit
 	print("Exiting")
-
+#This is the parser function which processes the input commands.
 def parse_line(line):#, currentDb):
 	global currentDb
+	global dbNames
 	words = line.split(" ")
 #put the database instances in a list?
 	if line[:2] == "--" or len(line) == 0:
@@ -29,11 +31,11 @@ def parse_line(line):#, currentDb):
 		#	print("currentDB: "+currentDb+"")
 			if words[0].lower() == "create": # found the command create
 				if words[1].lower() == "database":
-					if not Exists( words[2]):
-						Database(words[2])# probably append the database instead
+					if not Exists( words[2]): # append to the list
+						dbNames.append(Database(words[2]))# probably append the database instead
 						print("create_database("  + words[2] + ")")
 					else:
-						print("Database already exists1")
+						print("Database already exists")
 				elif words[1].lower() == "table":
 					if not TableExist(words[2], currentDb):
 						currentTable = Table(words[2], currentDb)
@@ -76,9 +78,16 @@ def parse_line(line):#, currentDb):
 					else:
 						print("ERROR: Table doesn't exist")
 				elif words[1].lower() == "database":
-					if Exists(words[2]):
-							DropDb = Database(words[2])
-							DropDb.drop()
+					if Exists(words[2]):# delete from list
+							found = False
+							for db in dbNames: # search through the list to find the right instance
+								if (words[2] == db.name):
+									db.drop()
+									dbNames.remove(db)
+									found = True
+							if not found: # database exsists but isnt in the list
+								DropDb = Database(words[2])
+								DropDb.drop()
 							print("drop_database(" + words[2] + ")")
 					else:
 						print("Database doesn't exist")
@@ -130,7 +139,6 @@ def Exists (name):
 def TableExist(tname, currentDb):
 		filePath = "PA1/"+currentDb+"/"+tname+".txt"
 		return os.path.isfile(filePath)
-
 
 
 
