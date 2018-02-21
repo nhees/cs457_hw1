@@ -18,7 +18,7 @@ class Database:
         filePath = "PA1/"+ self.name+""
         #checks if the directory already exists
         if not os.path.exists(filePath):
-            os.mkdir(filePath)
+            os.makedirs(filePath)
 
 #Drop: this function is in charge of deleting the folder that represents the databse
     def drop(self):
