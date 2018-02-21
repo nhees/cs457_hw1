@@ -16,7 +16,7 @@ class Database:
         filePath = "PA1/"+ self.name+""
         #checks if the directory already exists
         if not os.path.exists(filePath):
-            os.mkdir(filePath)
+            os.makedirs(filePath)
             #do we need to write a metafile???
     #    else:
     #    print("Database already exists2")
