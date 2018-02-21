@@ -1,14 +1,13 @@
 class Table:
 # should the table be a list of lists?????
     #constructor
+    #declares the variables: tnme, db and filePath
     def __init__(self, tableName, db ):
-        print("In the table constructor")
+        #print("In the table constructor")
         self.tname = tableName
         self.db = db #name of the database the table is located in
         self.filePath = "PA1/"+self.db+"/"+self.tname+".txt"
-        #self.create()
-        #reates the file that will respresent the table
-        #self.tdata = [][]
+
 
     #Creates the file that will represent the table
     def create(self):
