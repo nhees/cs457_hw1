@@ -7,8 +7,6 @@ dbNames =[]
 currentDb = "NA"
 
 def main():
-
-
 	try:
 		#runs through the input and processes all of the commands
 		sqlInput = input()
@@ -35,32 +33,35 @@ def parse_line(line):#, currentDb):
 				if words[1].lower() == "database":
 					if not Exists( words[2]): # append to the list
 						dbNames.append(Database(words[2]))# probably append the database instead
-						print("create_database("  + words[2] + ")")
+						print("Database '"  + words[2] + "' created")
 					else:
-						print("Database already exists")
+						print("!Failed to create database '" + words[2] + "' because it already exists")
 				elif words[1].lower() == "table":
-					if not TableExist(words[2], currentDb):
-						currentTable = Table(words[2], currentDb)
-						currentTable.create()
-
-						currentWord = 3
-						wordCount = len(words)
-						nextWord = words[currentWord]
-						#this while loop will run through and
-						while currentWord < wordCount:
-							atrName = words[currentWord].strip("()")
-							if words[currentWord + 1][:3] == "int":
-								currentTable.add_column(int,atrName, 0)
-							elif words[currentWord + 1][:5] == "float":
-								currentTable.add_column(float,atrName, 0)
-							elif words[currentWord + 1][:4] == "char":
-								currentTable.add_column("char",atrName, words[currentWord + 1][4:].strip("()") )
-							elif words[currentWord + 1][:7] == "varchar":
-								currentTable.add_column("varchar",atrName, words[currentWord + 1][7:].strip("()") )
-							currentWord += 2
-						print("Table '" + words[2] + "' created")
+					if currentDb == "NA":
+						print("!Failed to create table '"+ words[2] +"' because no database is being used")
 					else:
-						print("!Failed to create table '"+ words[2] +"' because it already exists")
+						if not TableExist(words[2], currentDb):
+							currentTable = Table(words[2], currentDb)
+							currentTable.create()
+
+							currentWord = 3
+							wordCount = len(words)
+							nextWord = words[currentWord]
+							#this while loop will run through and
+							while currentWord < wordCount:
+								atrName = words[currentWord].strip("()")
+								if words[currentWord + 1][:3] == "int":
+									currentTable.add_column(int,atrName, 0)
+								elif words[currentWord + 1][:5] == "float":
+									currentTable.add_column(float,atrName, 0)
+								elif words[currentWord + 1][:4] == "char":
+									currentTable.add_column("char",atrName, words[currentWord + 1][4:].strip("()") )
+								elif words[currentWord + 1][:7] == "varchar":
+									currentTable.add_column("varchar",atrName, words[currentWord + 1][7:].strip("()") )
+								currentWord += 2
+							print("Table '" + words[2] + "' created")
+						else:
+							print("!Failed to create table '"+ words[2] +"' because it already exists")
 
 			elif words[0].lower() == "drop":
 				if words[1].lower() == "table":
@@ -81,7 +82,7 @@ def parse_line(line):#, currentDb):
 							if not found: # database exsists but isnt in the list
 								DropDb = Database(words[2])
 								DropDb.drop()
-							print("drop_database(" + words[2] + ")")
+							print("Database '" + words[2] + "' deleted")
 					else:
 						print("!Failed to delete database '" + words[2] + "' because it does not exist")
 
