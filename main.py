@@ -12,6 +12,8 @@ def main():
 	try:
 		sqlInput = input()
 		while sqlInput.lower() != ".exit":
+			while sqlInput[:2] != "--" and len(sqlInput) != 0 and sqlInput[-1] != ";":
+				sqlInput += input(".. > ") # allow multi-line input
 			parse_line(sqlInput.split(";")[0])#,currentDb)
 			sqlInput = input()
 	except EOFError:
@@ -29,11 +31,11 @@ def parse_line(line):#, currentDb):
 		#	print("currentDB: "+currentDb+"")
 			if words[0].lower() == "create": # found the command create
 				if words[1].lower() == "database":
-					if not Exists( words[2]):
+					if not Exists(words[2]):
 						Database(words[2])# probably append the database instead
 						print("Database '" + words[2] + "' created")
 					else:
-						print("!Failed to delete database '" + words[2] + "' because it already exists")
+						print("!Failed to create database '" + words[2] + "' because it already exists")
 				elif words[1].lower() == "table":
 					if not TableExist(words[2], currentDb):
 						currentTable = Table(words[2], currentDb)
