@@ -75,8 +75,6 @@ class Table:
 
 	def delete(self, attribute,relation, value):
 	#	print("In delete function")
-
-
 		tbFile = open(self.filePath, "r+")
 		testmetaData = tbFile.readline()
 		metaData = testmetaData.split("|")
@@ -85,30 +83,10 @@ class Table:
 			if attribute in i:
 				attrIndex = metaData.index(i)
 
+	#deletes the table file
+	def drop(self):
+		os.remove(self.filePath)
 
-		lines = tbFile.readlines()
-		tbFile.seek(0)
-		tbFile.truncate()
-
-		tbFile.write(testmetaData) #rewriting thle metadata line
-	#	print("Relation: = l" +relation+"l")
-		for line in lines:
-				testline = line.split("|")
-				#print("Value: "+value+ "test line: " +testline[attrIndex].strip("''") +"")
-				if relation == '=':
-					if value.strip("''") != testline[attrIndex].strip("''"):
-						print("Value: "+value+ "test line: " +testline[attrIndex].strip("''") +"")
-						tbFile.write(line)
-				elif relation == ">" :
-					#print("Found the right relation")
-					if float(value) > float(testline[attrIndex]):
-						tbFile.write(line)
-				else:
-					#print("In here")
-					if float(value) < float(testline[attrIndex]):
-						tbFile.write(line)
-				#else:
-					#print("found: " +vlaue+"")
 	#inserts tuple into table
 	def insert(self, arguments):
 		tbFile = open(self.filePath, "r")
@@ -116,19 +94,39 @@ class Table:
 		attributes = metadata.split("|")
 
 		dataToAdd = "\n"
-
 		successfulInsert = True
 
 		if len(arguments) != len(attributes) - 1:
 			print("Invalid tuple length: " + str(len(arguments)) + " (there are " + str(len(attributes) - 1) + " attributes)")
 			successfulInsert = False
 		else:
+			currentArg = 0
 			for arg in arguments:
-				# type check
-				dataToAdd += arg + "|"
+				currentType = attributes[currentArg].split()[1] # select type, not name
 
-		wrFile = open(self.filePath, "a")
-		wrFile.write(dataToAdd)
+				data = str
+				if currentType == "int":
+					data = str(int(float(arg))) # float conversion allows truncation if needed
+				elif currentType == "float":
+					data = str(float(arg))
+				elif currentType.split("(")[0] == "varchar" or currentType.split("(")[0] == "char":
+					if len(arg) < 2 or arg[0] != "'" or arg[-1] != "'":
+						print("!Error: No quotation marks around char/varchar: " + arg)
+						return
+					else:
+						string = arg[1:-1]
+						if currentType.split("(")[0] == "varchar":
+							length = int(currentType.split(")")[0][8:]) # extract length
+						else:
+							length = int(currentType.split(")")[0][5:]) # extract length
+						data = "'" + string[0:length] + "'" # cut input to max length of varchar
+
+				dataToAdd += data + "|"
+				currentArg += 1
+
+			wrFile = open(self.filePath, "a")
+			wrFile.write(dataToAdd)
+
 		return successfulInsert
 
 	#adds and attribute to the table

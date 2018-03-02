@@ -95,11 +95,35 @@ def parse_line(line):
 			elif words[0].lower() == "select":
 				if currentDb == "NA":
 					print("!Failed to query table '" + words[3] + "' because no database is being used")
-				elif tb_exists(words[3].lower(), currentDb): # add words to select list until word = from
-					currentTable = Table(words[3].lower(), currentDb)
-					currentTable.select(words[1])
 				else:
-					print("!Failed to query table '" + words[3] + "' because it does not exist")
+					attributes = [] # what columns to select
+					tables = []     # what tables to join
+					conditions = [] # what conditions to apply
+					currentWord = 1
+					tablStart = 0
+					condStart = 0
+
+					for word in words[1:]:
+						if word.lower() == "from":
+							attributes = "".join(words[1:currentWord]).split(",")
+							tablStart = currentWord + 1
+						elif word.lower() == "where":
+							tables = "".join(words[tablStart:currentWord]).split(",")
+							condStart = currentWord + 1
+						currentWord += 1
+
+					if condStart != 0: # the where keyword was used
+						conditions = " ".join(words[condStart:currentWord]).split(",")
+					else:
+						tables = "".join(words[tablStart:currentWord]).split(",")
+
+					for tableName in tables: # make sure table names are valid before calling function
+						if not tb_exists(tableName, currentDb):
+							print("!Failed to select from '" + tableName + "' because it does not exist\n(note that table names are case sensitive)")
+							return
+
+					selectDB = Database(currentDb)
+					selectDB.select(attributes, tables, conditions)
 
 			elif words[0].lower() == "use": # should make sure the db exist
 				if db_exists(words[1]):
@@ -183,7 +207,6 @@ def parse_line(line):
 #				else:
 #					print("!Failed to update table '" + words[2] + "' because it does not exist")
 			else:
-				#print("we")
 				print("Invalid line: " + line)
 		except IndexError:
 			print("Invalid line: " + line)
