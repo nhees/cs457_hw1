@@ -1,5 +1,5 @@
-
 import os
+from table import Table
 
 DIRECTORY = "PA2/"
 
@@ -28,3 +28,34 @@ class Database:
 	def drop(self):
 		filepath = DIRECTORY+self.name+""
 		os.system("rm -rf " + filepath)
+
+	def select(self, attributes, tables, conditions):
+		joinedTable = []
+
+		# from statement
+		for tableName in tables:
+			currentTable = Table(tableName, self.name)
+			tbFile = open(currentTable.filePath, "r")
+			
+			for line in tbFile:
+				joinedTable.append(line.split("|")[:-1]) # -1 because the last item is \n
+				# multitable implementation to be worried about later
+		
+		# where statement
+		
+		
+		# select statement
+		currentAttr = 0
+		for attribute in joinedTable[0]: # row 0 is the metadata
+			attrName = attribute.split()[0]
+			if "*" not in attributes and attrName not in attributes:
+				for row in joinedTable:
+					row.pop(currentAttr) # remove the whole column
+
+			currentAttr += 1
+		
+		# print result
+		for row in joinedTable:
+			print(row)
+					
+					

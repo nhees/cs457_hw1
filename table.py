@@ -25,22 +25,6 @@ class Table:
 	def drop(self):
 		os.remove(self.filePath)
 
-	#delete file and metadata from the metadata file
-
-	# displays the table information
-	def select(self, selected):
-		tbFile = open(self.filePath, "r")
-		metadata = tbFile.readline()
-		attributes = metadata.split("|")
-
-		selectedMetaData = ""
-
-		for attribute in attributes:
-			if len(attribute) > 0 and ((attribute.split(" "))[0] == selected or selected == "*"): # allows for selecting all or a single column
-				selectedMetaData += (attribute + " | ")
-
-		print(selectedMetaData)
-
 	#inserts tuple into table
 	def insert(self, arguments):
 		tbFile = open(self.filePath, "r")
@@ -48,19 +32,39 @@ class Table:
 		attributes = metadata.split("|")
 
 		dataToAdd = "\n"
-
 		successfulInsert = True
 
 		if len(arguments) != len(attributes) - 1:
 			print("Invalid tuple length: " + str(len(arguments)) + " (there are " + str(len(attributes) - 1) + " attributes)")
 			successfulInsert = False
 		else:
+			currentArg = 0
 			for arg in arguments:
-				# type check
-				dataToAdd += arg + "|"
+				currentType = attributes[currentArg].split()[1] # select type, not name
+				
+				data = str
+				if currentType == "int":
+					data = str(int(float(arg))) # float conversion allows truncation if needed
+				elif currentType == "float":
+					data = str(float(arg))
+				elif currentType.split("(")[0] == "varchar" or currentType.split("(")[0] == "char":
+					if len(arg) < 2 or arg[0] != "'" or arg[-1] != "'":
+						print("!Error: No quotation marks around char/varchar: " + arg)
+						return
+					else:
+						string = arg[1:-1]
+						if currentType.split("(")[0] == "varchar":
+							length = int(currentType.split(")")[0][8:]) # extract length
+						else:
+							length = int(currentType.split(")")[0][5:]) # extract length
+						data = "'" + string[0:length] + "'" # cut input to max length of varchar
 
-		wrFile = open(self.filePath, "a")
-		wrFile.write(dataToAdd)
+				dataToAdd += data + "|"
+				currentArg += 1
+
+			wrFile = open(self.filePath, "a")
+			wrFile.write(dataToAdd)
+
 		return successfulInsert
 
 	#adds and attribute to the table
