@@ -3,8 +3,6 @@ from table import Table
 
 DIRECTORY = "PA2/"
 
-DIRECTORY = "PA2/"
-
 class Database:
 # Creates and Destroys databases
 # Initialized with a database name
@@ -30,37 +28,72 @@ class Database:
 	def drop(self):
 		filepath = DIRECTORY+self.name+""
 		os.system("rm -rf " + filepath)
-<<<<<<< HEAD
-=======
 
 	def select(self, attributes, tables, conditions):
 		joinedTable = []
+		
+		if len(attributes[0]) == 0:
+			print("!Error: nothing to select")
+			return
 
 		# from statement
-		for tableName in tables:
-			currentTable = Table(tableName, self.name)
-			tbFile = open(currentTable.filePath, "r")
+		currentTable = Table(tables[0].lower(), self.name) # only worry about the first table (for now!)
+		tbFile = open(currentTable.filePath, "r")
 			
-			for line in tbFile:
-				joinedTable.append(line.split("|")[:-1]) # -1 because the last item is \n
-				# multitable implementation to be worried about later
-		
+		for line in tbFile:
+			joinedTable.append(line.split("|")[:-1])
+	
 		# where statement
-		
-		
+		for condition in conditions:
+			words = condition.split()
+			if len(words) != 3:
+				print("!Failed to select: invalid condition '" + condition + "'")
+				return
+			
+			condAttribute = words[0]
+			condOperator = words[1]
+			condParameter = words[2]
+
+			attrIndex = 0
+			for attribute in joinedTable[0]: # find condition attribute
+				attrName = attribute.split()[0]
+				if attrName == condAttribute:
+					break # attr index has been found
+				attrIndex += 1
+			if attrIndex == len(joinedTable[0]): # attr wasn't found
+				print("!Failed to select: couldn't apply constraint to attribute '" + condAttribute + "'")
+				return
+
+			if condOperator == "!=":
+				for row in joinedTable[1:]: # 1: because attribute row is skipped
+					if row[attrIndex] == condParameter:
+						joinedTable.remove(row) # remove row
+			elif condOperator == "=":
+				for row in joinedTable[1:]:
+					if row[attrIndex] != condParameter:
+						joinedTable.remove(row)
+			elif condOperator == "<":
+				for row in joinedTable[1:]:
+					if float(row[attrIndex]) >= float(condParameter):
+						joinedTable.remove(row)
+			elif condOperator == ">":
+				for row in joinedTable[1:]:
+					if float(row[attrIndex]) <= float(condParameter):
+						joinedTable.remove(row)
+			else:
+				print("!Failed to select: unknown operator '" + condOperator + "'")
+				return
+
 		# select statement
-		currentAttr = 0
-		for attribute in joinedTable[0]: # row 0 is the metadata
+		for i, attribute in enumerate(joinedTable[0]): # row 0 is the metadata
 			attrName = attribute.split()[0]
 			if "*" not in attributes and attrName not in attributes:
 				for row in joinedTable:
-					row.pop(currentAttr) # remove the whole column
-
-			currentAttr += 1
+					row.pop(i) # remove the whole column
 		
 		# print result
 		for row in joinedTable:
-			print(row)
-					
-					
->>>>>>> a1c47bbe16d5775be7403a1135c60ee2f4979cad
+			rowText = "| "
+			for item in row:
+				rowText += item + " | "
+			print(rowText)

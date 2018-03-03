@@ -13,33 +13,15 @@ class Table:
 		self.db = db #name of the database the table is located in
 		self.filePath = DIRECTORY+self.db+"/"+self.tname+".txt"
 
-
 	#Creates the file that will represent the table
 	def create(self):
 		#filePath= "PA1/"+self.db+"/"+self.tname+".txt"
 		open(self.filePath,"a")
 		#print("create the table")
 
-
 	#deletes the table file
 	def drop(self):
 		os.remove(self.filePath)
-
-	#delete file and metadata from the metadata file
-
-	# displays the table information
-	def select(self, selected):
-		tbFile = open(self.filePath, "r")
-		metadata = tbFile.readline()
-		attributes = metadata.split("|")
-
-		selectedMetaData = ""
-
-		for attribute in attributes:
-			if len(attribute) > 0 and ((attribute.split(" "))[0] == selected or selected == "*"): # allows for selecting all or a single column
-				selectedMetaData += (attribute + " | ")
-
-		print(selectedMetaData)
 
 	def update(self, setAttr, newValue, whereAttr, oldValue):
 		#print("in the update function")
@@ -71,8 +53,6 @@ class Table:
 					line = line.replace(testline[setAttrIndex].strip("''"), newValue)
 				tbFile.write(line)
 
-
-
 	def delete(self, attribute,relation, value):
 	#	print("In delete function")
 		tbFile = open(self.filePath, "r+")
@@ -100,9 +80,8 @@ class Table:
 			print("Invalid tuple length: " + str(len(arguments)) + " (there are " + str(len(attributes) - 1) + " attributes)")
 			successfulInsert = False
 		else:
-			currentArg = 0
-			for arg in arguments:
-				currentType = attributes[currentArg].split()[1] # select type, not name
+			for i, arg in enumerate(arguments):
+				currentType = attributes[i].split()[1] # select type, not name
 
 				data = str
 				if currentType == "int":
@@ -122,7 +101,6 @@ class Table:
 						data = "'" + string[0:length] + "'" # cut input to max length of varchar
 
 				dataToAdd += data + "|"
-				currentArg += 1
 
 			wrFile = open(self.filePath, "a")
 			wrFile.write(dataToAdd)

@@ -36,9 +36,9 @@ def parse_line(line):
 		try:
 			if words[0].lower() == "create": # found the command create
 				if words[1].lower() == "database":
-					if not db_exists(words[2]): # append to the list
-						currentDatabase = Database(words[2])
-						currentDb = words[2]
+					if not db_exists(words[2].lower()): # append to the list
+						currentDatabase = Database(words[2].lower())
+						currentDb = words[2].lower()
 						currentDatabase.create()
 						print("Database '"  + words[2] + "' created")
 					else:
@@ -83,10 +83,10 @@ def parse_line(line):
 					else:
 						print("!Failed to delete table '" + words[2] + "' because it does not exist")
 				elif words[1].lower() == "database":
-					if db_exists(words[2]):# delete from list
-							if currentDb == words[2]: # dropping the current database
+					if db_exists(words[2].lower()): # delete from list
+							if currentDb == words[2].lower(): # dropping the current database
 								currentDb = "NA"
-							currentDb = Database(words[2])
+							currentDb = Database(words[2].lower())
 							currentDb.drop()
 							print("Database '" + words[2] + "' deleted")
 					else:
@@ -118,16 +118,16 @@ def parse_line(line):
 						tables = "".join(words[tablStart:currentWord]).split(",")
 
 					for tableName in tables: # make sure table names are valid before calling function
-						if not tb_exists(tableName, currentDb):
-							print("!Failed to select from '" + tableName + "' because it does not exist\n(note that table names are case sensitive)")
+						if not tb_exists(tableName.lower(), currentDb):
+							print("!Failed to select from '" + tableName + "' because it does not exist")
 							return
 
 					selectDB = Database(currentDb)
 					selectDB.select(attributes, tables, conditions)
 
 			elif words[0].lower() == "use": # should make sure the db exist
-				if db_exists(words[1]):
-					currentDb = words[1]
+				if db_exists(words[1].lower()):
+					currentDb = words[1].lower()
 					print("Using database '" + words[1] + "'")
 				else:
 					print("!Failed to use database '" + words[2] + "' because it does not exist")
@@ -173,8 +173,6 @@ def parse_line(line):
 				else:
 					print("Invlaid command")
 
-
-
 			elif words[0].lower() == "insert":
 				if currentDb == "NA":
 						print("!Failed to insert to table '" + words[2] + "' because no database is being used")
@@ -200,12 +198,7 @@ def parse_line(line):
 					relation = words[5]
 					oldValue = words[6].replace('"', '')
 					currentTable.delete(whereAttr, relation, oldValue)
-#			elif words[0].lower() == "update":
-#				if tb_exists(words[1], currentDb):
-#					if words[2].lower() == "set":
-#						print("update_database(set " + words[7] + " " + words[5] + " where " + words[7] + " = " + words[9] +")")
-#				else:
-#					print("!Failed to update table '" + words[2] + "' because it does not exist")
+
 			else:
 				print("Invalid line: " + line)
 		except IndexError:
