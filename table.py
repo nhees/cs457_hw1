@@ -62,6 +62,29 @@ class Table:
 		for i in metaData:
 			if attribute in i:
 				attrIndex = metaData.index(i)
+		lines = tbFile.readlines()
+		tbFile.seek(0)
+		tbFile.truncate()
+
+		tbFile.write(testmetaData) # rewriting themetaData line
+
+		for line in lines:
+				testline = line.split("|")
+
+				if relation == '=':
+					if testline[attrIndex].strip("''") != value:
+						tbFile.write(line)
+
+				elif relation == '<':
+
+					if float(testline[attrIndex]) > float(value):
+						tbFile.write(line)
+				else:
+					#print("Old value "+testline[attrIndex]+ " value: " + value +"")
+
+					if float(testline[attrIndex]) < float(value):
+						print("Old value "+testline[attrIndex]+ " value: " + value +"")
+						tbFile.write(line)
 
 	#deletes the table file
 	def drop(self):
