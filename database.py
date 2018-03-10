@@ -29,6 +29,18 @@ class Database:
 		filepath = DIRECTORY+self.name+""
 		os.system("rm -rf " + filepath)
 
+# Select: this function queries the database
+# param attributes:
+#       list of attribute names to select (e.g. [pid,price])
+# param tables:
+#       list of tables to be selected (currently only 1 is supported)
+# param conditions:
+#       list of conditions to apply (e.g. [price = 1,pid < 5]
+# algorithm:
+#     selects the first table in the list and loads it. For each condition in 
+#     the condition list, removes tuples that don't match the condition. Then,
+#     removes all columns with attributes not in the attribute list. Finally,
+#     prints the remaining elements in the table
 	def select(self, attributes, tables, conditions):
 		joinedTable = []
 		

@@ -90,7 +90,14 @@ class Table:
 	def drop(self):
 		os.remove(self.filePath)
 
-	#inserts tuple into table
+# Insert: adds a new tuple to the table
+# param arguments:
+#       tuple to be added to the table (e.g. [1,'Product',4.99]
+# algorithm:
+#     Ensures that the tuple is of the right length. Then, applies
+#     basic type enforcement (var/chars must have quotation marks
+#     and be of the correct length, ints should not have decimal
+#     values). Finally, adds the tuple to the bottom of the table
 	def insert(self, arguments):
 		tbFile = open(self.filePath, "r")
 		metadata = tbFile.readline()
