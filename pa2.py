@@ -4,12 +4,7 @@ from database import Database
 from table import Table
 
 currentDb = "NA"
-FILE = "NA"
 DIRECTORY = "PA2/"
-newValue = "NA" #  value for the attribute
-attr ="NA" # attribute
-oldValue = "NA" # old attribute
-whereAttr = "NA"
 
 def main():
 	try:
@@ -27,7 +22,6 @@ def main():
 #This is the parser function which processes the input commands.
 def parse_line(line):
 	global currentDb
-	global FILE, newValue, oldValue, attr, whereAttr
 	words = line.split()
 
 	if line[:2] == "--" or len(line) == 0:
