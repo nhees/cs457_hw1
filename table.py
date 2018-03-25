@@ -44,8 +44,9 @@ class Table:
 		lines = tbFile.readlines()
 		tbFile.seek(0)
 		tbFile.truncate()
-
-		tbFile.write(testmetaData) #rewriting the metadata line
+		
+		#rewriting the metadata line
+		tbFile.write(testmetaData)
 
 		for line in lines:
 				testline = line.split("|")
@@ -54,10 +55,10 @@ class Table:
 				tbFile.write(line)
 
 	def delete(self, attribute,relation, value):
-	#	print("In delete function")
 		tbFile = open(self.filePath, "r+")
 		testmetaData = tbFile.readline()
 		metaData = testmetaData.split("|")
+
 		#the attribute that will be changed
 		for i in metaData:
 			if attribute in i:
@@ -66,7 +67,8 @@ class Table:
 		tbFile.seek(0)
 		tbFile.truncate()
 
-		tbFile.write(testmetaData) # rewriting themetaData line
+		#rewriting themetaData line
+		tbFile.write(testmetaData)
 
 		for line in lines:
 				testline = line.split("|")
@@ -80,24 +82,21 @@ class Table:
 					if float(testline[attrIndex]) > float(value):
 						tbFile.write(line)
 				else:
-					#print("Old value "+testline[attrIndex]+ " value: " + value +"")
-
 					if float(testline[attrIndex]) < float(value):
-						print("Old value "+testline[attrIndex]+ " value: " + value +"")
 						tbFile.write(line)
 
 	#deletes the table file
 	def drop(self):
 		os.remove(self.filePath)
 
-# Insert: adds a new tuple to the table
-# param arguments:
-#       tuple to be added to the table (e.g. [1,'Product',4.99]
-# algorithm:
-#     Ensures that the tuple is of the right length. Then, applies
-#     basic type enforcement (var/chars must have quotation marks
-#     and be of the correct length, ints should not have decimal
-#     values). Finally, adds the tuple to the bottom of the table
+	# Insert: adds a new tuple to the table
+	# param arguments:
+	#       tuple to be added to the table (e.g. [1,'Product',4.99]
+	# algorithm:
+	#     Ensures that the tuple is of the right length. Then, applies
+	#     basic type enforcement (var/chars must have quotation marks
+	#     and be of the correct length, ints should not have decimal
+	#     values). Finally, adds the tuple to the bottom of the table
 	def insert(self, arguments):
 		tbFile = open(self.filePath, "r")
 		metadata = tbFile.readline()
@@ -111,24 +110,30 @@ class Table:
 			successfulInsert = False
 		else:
 			for i, arg in enumerate(arguments):
-				currentType = attributes[i].split()[1] # select type, not name
+				#select attribute type
+				currentType = attributes[i].split()[1]
 
 				data = str
 				if currentType == "int":
-					data = str(int(float(arg))) # float conversion allows truncation if needed
+					#float conversion allows truncation if needed (e.g. 14.43 -> 14)
+					data = str(int(float(arg)))
 				elif currentType == "float":
 					data = str(float(arg))
 				elif currentType.split("(")[0] == "varchar" or currentType.split("(")[0] == "char":
-					if len(arg) < 2 or arg[0] != "'" or arg[-1] != "'":
+					#enforce quotation marks around char
+					if len(arg) < 2 or ((arg[0] != "'" or arg[-1] != "'") and (arg[0] != '"' or arg[-1] != '"')):
 						print("!Error: No quotation marks around char/varchar: " + arg)
 						return
 					else:
 						string = arg[1:-1]
+						#extract var/char length
 						if currentType.split("(")[0] == "varchar":
-							length = int(currentType.split(")")[0][8:]) # extract length
+							length = int(currentType.split(")")[0][8:])
 						else:
-							length = int(currentType.split(")")[0][5:]) # extract length
-						data = "'" + string[0:length] + "'" # cut input to max length of varchar
+							length = int(currentType.split(")")[0][5:])
+						
+						#cut input to max length of var/char
+						data = "'" + string[0:length] + "'"
 
 				dataToAdd += data + "|"
 

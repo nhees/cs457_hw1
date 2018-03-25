@@ -12,11 +12,14 @@ def main():
 		sqlInput = input().rstrip("\r\n")
 		while sqlInput.lower() != ".exit":
 			while sqlInput[:2] != "--" and len(sqlInput) != 0 and not sqlInput.endswith(";"):
-				sqlInput = sqlInput + " " + input("-->").strip("\r\n") # adds a space and allow multi-line input
+				#allow multi-line input. A space is added to the end of the line
+				#(double spaces are filtered out anyway)
+				sqlInput = sqlInput + " " + input("-->").strip("\r\n")
 			parse_line(sqlInput.split(";")[0])#,currentDb)
 			sqlInput = input().rstrip("\r\n")
-	except EOFError: # no more commands
-		pass # exit
+	except EOFError:
+		#no more commands, so exit
+		pass
 	print("Exiting")
 
 #This is the parser function which processes the input commands.
@@ -28,9 +31,9 @@ def parse_line(line):
             pass #ignore
 	else:
 		try:
-			if words[0].lower() == "create": # found the command create
+			if words[0].lower() == "create": 
 				if words[1].lower() == "database":
-					if not db_exists(words[2].lower()): # append to the list
+					if not db_exists(words[2].lower()):
 						currentDatabase = Database(words[2].lower())
 						currentDb = words[2].lower()
 						currentDatabase.create()
@@ -49,7 +52,8 @@ def parse_line(line):
 							wordCount = len(words)
 							nextWord = words[currentWord]
 
-							while currentWord < wordCount: # calls the add_column method on each argument
+							while currentWord < wordCount:
+								#calls the add_column method on each argument
 								atrName = words[currentWord].strip("()")
 								if words[currentWord + 1][:3] == "int":
 									currentTable.add_column(int,atrName, 0)
@@ -77,8 +81,10 @@ def parse_line(line):
 					else:
 						print("!Failed to delete table '" + words[2] + "' because it does not exist")
 				elif words[1].lower() == "database":
-					if db_exists(words[2].lower()): # delete from list
-							if currentDb == words[2].lower(): # dropping the current database
+					#delete from list
+					if db_exists(words[2].lower()):
+							if currentDb == words[2].lower():
+								#dropping the current database
 								currentDb = "NA"
 							currentDb = Database(words[2].lower())
 							currentDb.drop()
@@ -90,9 +96,9 @@ def parse_line(line):
 				if currentDb == "NA":
 					print("!Failed to query table '" + words[3] + "' because no database is being used")
 				else:
-					attributes = [] # what columns to select
-					tables = []     # what tables to join
-					conditions = [] # what conditions to apply
+					attributes = [] #what columns to select
+					tables = []     #what tables to join
+					conditions = [] #what conditions to apply
 					currentWord = 1
 					tablStart = 0
 					condStart = 0
@@ -106,12 +112,14 @@ def parse_line(line):
 							condStart = currentWord + 1
 						currentWord += 1
 
-					if condStart != 0: # the where keyword was used
+					if condStart != 0:
+						#the where keyword was used
 						conditions = " ".join(words[condStart:currentWord]).split(",")
 					else:
 						tables = "".join(words[tablStart:currentWord]).split(",")
 
-					for tableName in tables: # make sure table names are valid before calling function
+					#make sure table names are valid before calling function
+					for tableName in tables:
 						if not tb_exists(tableName.lower(), currentDb):
 							print("!Failed to select from '" + tableName + "' because it does not exist")
 							return
@@ -119,7 +127,7 @@ def parse_line(line):
 					selectDB = Database(currentDb)
 					selectDB.select(attributes, tables, conditions)
 
-			elif words[0].lower() == "use": # should make sure the db exist
+			elif words[0].lower() == "use":
 				if db_exists(words[1].lower()):
 					currentDb = words[1].lower()
 					print("Using database '" + words[1] + "'")
@@ -149,23 +157,21 @@ def parse_line(line):
 
 			elif words[0].lower() =="update":
 				FILE = words[1].lower()
-			#	words[1] = words[1].strip("set")
-				print("what is word 1: " +words[1]+ "")
-				#print("what is word 2: " +words[2]+ "")
+				print("Updating " +words[1]+ ":")
 				currentTable = Table(FILE, currentDb)
 				if words[2] == "set":
 					attr = words[3]
 					newValue = words[5].strip("''")
-					print ("Setting attribute : " + attr + "  to new value: " +newValue+ " ")
+					print (" Setting attribute : " + attr + " to new value: " +newValue+ " ")
 					if words[6] == "where":
 						whereAttr = words[7]
 						oldValue = words[9].strip("''")
 						currentTable.update(attr,newValue, whereAttr, oldValue)
-						print(" Where: " +whereAttr+" is: " + oldValue + " ")
+						print(" Where " +whereAttr+" is: " + oldValue + " ")
 					else:
 						print("Invalid no where command")
 				else:
-					print("Invlaid command")
+					print("Invalid command")
 
 			elif words[0].lower() == "insert":
 				if currentDb == "NA":
@@ -183,14 +189,13 @@ def parse_line(line):
 						print("!Failed to insert into table '" + words[2] + "' because it does not exist")
 
 			elif words[0].lower() == "delete":
-				#print("found delete")
 				FILE = words[2].lower()
 				currentTable = Table(FILE, currentDb)
 				if words[3] == "where":
-					#print("found where: " +words[5]+"")
 					whereAttr = words[4]
 					relation = words[5]
 					oldValue = words[6].replace('"', '')
+					print("Deleting from " +words[2])
 					currentTable.delete(whereAttr, relation, oldValue)
 
 			else:
@@ -199,9 +204,6 @@ def parse_line(line):
 			print("Invalid line: " + line)
 
 def db_exists (name):
-    #any(current for current in dbName if current.name == name)
-	#should it return if the file exsists?
-	#print("in exist")
 	filePath = DIRECTORY+name+""
 	return os.path.exists(filePath)
 
