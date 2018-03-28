@@ -22,7 +22,14 @@ class Table:
 	#deletes the table file
 	def drop(self):
 		os.remove(self.filePath)
-
+		
+	# update: changes an attributes value for specific tuples
+	# param arguments:
+	#       where attribute and needed value as well as attribute to change and new value
+	# algorithm:
+	#     Ensure that the tuple meets the where clause requirments
+	#     if the clause requirements are met then the set attribute
+	#     value is changed in that tuple
 	def update(self, setAttr, newValue, whereAttr, oldValue):
 		#print("in the update function")
 		#quotes = ''
@@ -53,7 +60,12 @@ class Table:
 				if oldValue == testline[whereAttrIndex].strip("''"):
 					line = line.replace(testline[setAttrIndex].strip("''"), newValue)
 				tbFile.write(line)
-
+	# Delete: Deletes a tuple to the table
+	# param arguments:
+	#       attribute information the tuple must have to be deleted
+	# algorithm:
+	#     Reads through every tuple to ensure that it has the attribute relation 
+	#     requirements to be deleted from the table
 	def delete(self, attribute,relation, value):
 		tbFile = open(self.filePath, "r+")
 		testmetaData = tbFile.readline()
