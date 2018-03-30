@@ -30,7 +30,7 @@ def parse_line(line):
     if line[:2] == "--" or len(line) == 0:
             pass #ignore
     else:
-        try:
+#        try:
             if words[0].lower() == "create":
                 if words[1].lower() == "database":
                     if not db_exists(words[2].lower()):
@@ -243,8 +243,8 @@ def parse_line(line):
 
             else:
                 print("Invalid line: " + line)
-        except IndexError:
-            print("Invalid line: " + line)
+#        except IndexError:
+#            print("Invalid line: " + line)
 
 def db_exists (name):
     filePath = DIRECTORY + name + ""

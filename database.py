@@ -116,7 +116,7 @@ class Database:
             return
 
 ######### from statement #########
-        tablePairs = []
+        tablePairs = [] # [tableName, tableVariable]
         for line in tables[1:]:
             tablePair = line.split()
             tablePairs.append(tablePair)
@@ -126,7 +126,7 @@ class Database:
         # for each table passed in
         for table in tablePairs: # append to unique table
             tableName = table[0].lower()
-            tableSymbol = table[1].lower()
+            tableVariable = table[1].lower()
 
             currentTable = Table(tableName, self.name)
             tableBuffer = []
@@ -135,23 +135,17 @@ class Database:
             for line in tbFile:
                 tableBuffer.append(line.split("|")[:-1])
 
-            tablePairs.append(tableBuffer)
+            tableList.append(tableBuffer)
 
-        # manyTables = []
-        # manyTables[0] = 2D array containing table1
-        # manyTables[1] = 2D array containing table2
-        # ...
-        #
-        # joinedTable = []
-        # go through the two tables, joining on conditions (nested loop, hash join, etc.)
-        # and add to joinedTable
-        #
-        # select statement already prints joinedTable
+        # tableList is now a list of list of lists
 
-        print(" | Tables:\n | Join type: " + tables[0])   # temp debug output
-        for element in tablePairs:                        # temp debug output
-            print(" | <" + str(element) + ">")            # temp debug output
-        print(" | Conditions:")                           # temp debug output
+        print(" | Table:\n | Join type: " + tables[0]) # temp debug output
+        print(" | " + str(tableList))                   # temp debug output
+        print(" | Conditions:")                         # temp debug output
+
+        # The join function should now be called
+        # it should return joinedTable, the result
+        # of the join operation
 
 ######### where statement #########
 #        for condition in conditions:
@@ -207,6 +201,10 @@ class Database:
         print(" |<-----\n") # temp debug output
 
 ######### select statement #########
+        # this should be rewritten to be more efficient
+        # (just print selected rows, don't delete non-
+        #  selected then print remaining table)
+
         for i, attribute in enumerate(joinedTable[0]):
             attrName = attribute.split()[0]
             if "*" not in attributes and attrName not in attributes:
