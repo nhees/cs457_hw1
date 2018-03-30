@@ -29,6 +29,69 @@ class Database:
         filepath = DIRECTORY + self.name + ""
         os.system("rm -rf " + filepath)
 
+    def inner_join(self, tableList, condition):
+
+        words = condition.split()
+        if len(words) != 3:
+            print("!Failed to select: invalid condition '" + condition + "'")
+            return
+
+        #attribute to be checked, condition operator, parameter to check against
+        table1attr = words[0].split('.')
+        condOperator = words[1]
+        table2attr = words[2].split('.')
+
+        # temp debug output
+        print(" | <" + str(table1attr) + " " + condOperator + " " + str(table2attr) + ">")
+        ####Getting the tables#####
+        table1 = tableList[0]
+        table2 = tableList[1]
+
+        for ind in table1:
+            if table1attr in ind:
+                attr1Index = table1.index(i)
+
+        for ind in table2:
+            if table2attr in ind:
+                attr2Index = table2.index(i)
+
+        print("Attr1 index:" +attr1Index+" attr2 index:" + attr2Index+" ")
+        #attrIndex = 0
+        #for attribute in joinedTable[0]:
+            #find condition attribute
+        #    attrName = attribute.split()[0]
+        #    if attrName == table1attr[0]:
+                #attr index has been found, stop looking
+        #        break
+        #    attrIndex += 1
+        #if attrIndex == len(joinedTable[0]):
+            #attr wasn't found
+        #    print(" |<-----\n") # temp debug output
+        #    print("!Failed to select: couldn't apply constraint to attribute '"
+        #          + table1attr[0] + "'")
+        #    return
+
+        #remove rows from that don't match condition from table being printed
+        if condOperator == "!=":
+            for row in joinedTable[1:]:
+                if row[attrIndex] == table2attr[0]:
+                    joinedTable.remove(row)
+        elif condOperator == "=":
+            for row in joinedTable[1:]:
+                if row[attrIndex] != table2attr[0]:
+                    joinedTable.remove(row)
+        elif condOperator == "<":
+            for row in joinedTable[1:]:
+                if float(row[attrIndex]) >= float(table2attr[0]):
+                    joinedTable.remove(row)
+        elif condOperator == ">":
+            for row in joinedTable[1:]:
+                if float(row[attrIndex]) <= float(table2attr[0]):
+                    joinedTable.remove(row)
+        else:
+            print("!Failed to select: unknown operator '" + condOperator + "'")
+            return
+
     # Select: this function queries the database
     # param attributes:
     #       list of attribute names to select (e.g. [pid,price])
@@ -58,12 +121,32 @@ class Database:
             tablePair = line.split()
             tablePairs.append(tablePair)
 
-        #just use first table for now
-        currentTable = Table(tablePairs[0][0].lower().split()[0], self.name)
-        tbFile = open(currentTable.filePath, "r")
+        tableList = []
 
-        for line in tbFile:
-            joinedTable.append(line.split("|")[:-1])
+        # for each table passed in
+        for table in tablePairs: # append to unique table
+            tableName = table[0].lower()
+            tableSymbol = table[1].lower()
+
+            currentTable = Table(tableName, self.name)
+            tableBuffer = []
+            tbFile = open(currentTable.filePath, "r")
+
+            for line in tbFile:
+                tableBuffer.append(line.split("|")[:-1])
+
+            tablePairs.append(tableBuffer)
+
+        # manyTables = []
+        # manyTables[0] = 2D array containing table1
+        # manyTables[1] = 2D array containing table2
+        # ...
+        #
+        # joinedTable = []
+        # go through the two tables, joining on conditions (nested loop, hash join, etc.)
+        # and add to joinedTable
+        #
+        # select statement already prints joinedTable
 
         print(" | Tables:\n | Join type: " + tables[0])   # temp debug output
         for element in tablePairs:                        # temp debug output
@@ -71,55 +154,55 @@ class Database:
         print(" | Conditions:")                           # temp debug output
 
 ######### where statement #########
-        for condition in conditions:
-            words = condition.split()
-            if len(words) != 3:
-                print("!Failed to select: invalid condition '" + condition + "'")
-                return
+#        for condition in conditions:
+#            words = condition.split()
+#            if len(words) != 3:
+#                print("!Failed to select: invalid condition '" + condition + "'")
+#                return
 
             #attribute to be checked, condition operator, parameter to check against
-            condAttrPair = words[0].split('.')
-            condOperator = words[1]
-            condParamPair = words[2].split('.')
+#            condAttrPair = words[0].split('.')
+#            condOperator = words[1]
+#            condParamPair = words[2].split('.')
 
             # temp debug output
-            print(" | <" + str(condAttrPair) + " " + condOperator + " " + str(condParamPair) + ">")
+#            print(" | <" + str(condAttrPair) + " " + condOperator + " " + str(condParamPair) + ">")
 
-            attrIndex = 0
-            for attribute in joinedTable[0]:
+#            attrIndex = 0
+#            for attribute in joinedTable[0]:
                 #find condition attribute
-                attrName = attribute.split()[0]
-                if attrName == condAttrPair[0]:
+#                attrName = attribute.split()[0]
+#                if attrName == condAttrPair[0]:
                     #attr index has been found, stop looking
-                    break
-                attrIndex += 1
-            if attrIndex == len(joinedTable[0]):
+#                    break
+#                attrIndex += 1
+#            if attrIndex == len(joinedTable[0]):
                 #attr wasn't found
-                print(" |<-----\n") # temp debug output
-                print("!Failed to select: couldn't apply constraint to attribute '"
-                      + condAttrPair[0] + "'")
-                return
+#                print(" |<-----\n") # temp debug output
+#                print("!Failed to select: couldn't apply constraint to attribute '"
+#                      + condAttrPair[0] + "'")
+#                return
 
             #remove rows from that don't match condition from table being printed
-            if condOperator == "!=":
-                for row in joinedTable[1:]:
-                    if row[attrIndex] == condParamPair[0]:
-                        joinedTable.remove(row)
-            elif condOperator == "=":
-                for row in joinedTable[1:]:
-                    if row[attrIndex] != condParamPair[0]:
-                        joinedTable.remove(row)
-            elif condOperator == "<":
-                for row in joinedTable[1:]:
-                    if float(row[attrIndex]) >= float(condParamPair[0]):
-                        joinedTable.remove(row)
-            elif condOperator == ">":
-                for row in joinedTable[1:]:
-                    if float(row[attrIndex]) <= float(condParamPair[0]):
-                        joinedTable.remove(row)
-            else:
-                print("!Failed to select: unknown operator '" + condOperator + "'")
-                return
+#            if condOperator == "!=":
+#                for row in joinedTable[1:]:
+#                    if row[attrIndex] == condParamPair[0]:
+#                        joinedTable.remove(row)
+#            elif condOperator == "=":
+#                for row in joinedTable[1:]:
+#                    if row[attrIndex] != condParamPair[0]:
+#                        joinedTable.remove(row)
+#            elif condOperator == "<":
+#                for row in joinedTable[1:]:
+#                    if float(row[attrIndex]) >= float(condParamPair[0]):
+#                        joinedTable.remove(row)
+#            elif condOperator == ">":
+#                for row in joinedTable[1:]:
+#                    if float(row[attrIndex]) <= float(condParamPair[0]):
+#                        joinedTable.remove(row)
+#            else:
+#                print("!Failed to select: unknown operator '" + condOperator + "'")
+#                return
 
         print(" |<-----\n") # temp debug output
 
