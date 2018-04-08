@@ -30,6 +30,8 @@ class Database:
         os.system("rm -rf " + filepath)
 
     def inner_join(self, tableList, condition):
+        joinedTable = []
+        joinedTable.append(tableList[0][1] + tableList[1][1]) # append attributes
 
         words = condition.split()
         if len(words) != 3:
@@ -37,60 +39,78 @@ class Database:
             return
 
         #attribute to be checked, condition operator, parameter to check against
-        table1attr = words[0].split('.')
-        condOperator = words[1]
-        table2attr = words[2].split('.')
+        attr1 = words[0].split('.')
+        attrOperator = words[1]
+        attr2 = words[2].split('.')
 
         # temp debug output
-        print(" | <" + str(table1attr) + " " + condOperator + " " + str(table2attr) + ">")
+        print(" | <" + str(attr1) + " " + attrOperator + " " + str(attr2) + ">")
+
         ####Getting the tables#####
         table1 = tableList[0]
         table2 = tableList[1]
+        table1attr = ""
+        table2attr = ""
 
-        for ind in table1:
-            if table1attr in ind:
-                attr1Index = table1.index(i)
-
-        for ind in table2:
-            if table2attr in ind:
-                attr2Index = table2.index(i)
-
-        print("Attr1 index:" +attr1Index+" attr2 index:" + attr2Index+" ")
-        #attrIndex = 0
-        #for attribute in joinedTable[0]:
-            #find condition attribute
-        #    attrName = attribute.split()[0]
-        #    if attrName == table1attr[0]:
-                #attr index has been found, stop looking
-        #        break
-        #    attrIndex += 1
-        #if attrIndex == len(joinedTable[0]):
-            #attr wasn't found
-        #    print(" |<-----\n") # temp debug output
-        #    print("!Failed to select: couldn't apply constraint to attribute '"
-        #          + table1attr[0] + "'")
-        #    return
-
-        #remove rows from that don't match condition from table being printed
-        if condOperator == "!=":
-            for row in joinedTable[1:]:
-                if row[attrIndex] == table2attr[0]:
-                    joinedTable.remove(row)
-        elif condOperator == "=":
-            for row in joinedTable[1:]:
-                if row[attrIndex] != table2attr[0]:
-                    joinedTable.remove(row)
-        elif condOperator == "<":
-            for row in joinedTable[1:]:
-                if float(row[attrIndex]) >= float(table2attr[0]):
-                    joinedTable.remove(row)
-        elif condOperator == ">":
-            for row in joinedTable[1:]:
-                if float(row[attrIndex]) <= float(table2attr[0]):
-                    joinedTable.remove(row)
+        if attr1[0].lower() == table1[0].lower():
+            table1attr = attr1[1].lower()
+            table2attr = attr2[1].lower()   # just assume the other attribute is valid because I'm lazy
+        elif attr1[0].lower() == table2[0].lower():
+            table2attr = attr1[1].lower()
+            table1attr = attr2[1].lower()
         else:
-            print("!Failed to select: unknown operator '" + condOperator + "'")
-            return
+            print("!Failed to select: could not match attributes to tables")
+
+        # note that tablex[1] is the attribute list
+        # also note that using tablex[1].index() doesn't work beacuse each attribute
+        # is a string containing both the attribute name and attribute type
+
+        table1attrIndex = self.find_attr_index(table1[1], table1attr)
+        table2attrIndex = self.find_attr_index(table2[1], table2attr)
+
+        # temp debug output
+        print(" | Attr1 index: " + str(table1attrIndex) +" attr2 index: " + str(table2attrIndex))
+
+        # NESTED LOOP JOIN
+        # PLEASE KEEP IN MIND:
+        #   table[0]  : table name
+        #   table[1]  : table attributes
+        #   table[2:] : table tuples
+
+        for tuple1 in table1: # (inner join, so choice of table is arbitrary)
+            for tuple2 in table2:
+                if self.match(tuple1[table1attrIndex], attrOperator, tuple2[table2attrIndex]):
+                    joinedTable.append(tuple1 + tuple2) # should be tuple1 UNION (tuple2 - table2attr)
+
+        return joinedTable
+
+
+    # Converts a string operator into a python operator
+    # and returns the result
+    def match(self, left, operator, right):
+        if operator == "!=":
+            if left != right:
+                return True
+        elif operator == "=":
+            if left == right:
+                return True
+        elif operator == "<":
+            if float(left) < float(right):
+                return True
+        elif operator == ">":
+            if float(left) > float(right):
+                return True
+        else:
+            return "?"
+        return False
+
+
+    def find_attr_index(self, attributeList, findAttribute):
+        for i, element in enumerate(attributeList):
+            if element.split()[0].lower() == findAttribute.lower():
+                return i
+        return -1
+
 
     # Select: this function queries the database
     # param attributes:
@@ -121,7 +141,7 @@ class Database:
             tablePair = line.split()
             tablePairs.append(tablePair)
 
-        tableList = []
+        tableList = [] # The grand monstrosity
 
         # for each table passed in
         for table in tablePairs: # append to unique table
@@ -130,6 +150,8 @@ class Database:
 
             currentTable = Table(tableName, self.name)
             tableBuffer = []
+            tableBuffer.append(tableVariable)
+
             tbFile = open(currentTable.filePath, "r")
 
             for line in tbFile:
@@ -137,7 +159,7 @@ class Database:
 
             tableList.append(tableBuffer)
 
-        # tableList is now a list of list of lists
+        # tableList is now a list containing lists which contain a list name and more lists
 
         print(" | Table:\n | Join type: " + tables[0]) # temp debug output
         print(" | " + str(tableList))                   # temp debug output
@@ -146,6 +168,12 @@ class Database:
         # The join function should now be called
         # it should return joinedTable, the result
         # of the join operation
+
+        if tables[0] == "inner":
+            joinedTable = self.inner_join(tableList, conditions[0])
+        else:
+            print("NON INNER JOINS CURRENTLY NOT IMPLEMENTED")
+            return
 
 ######### where statement #########
 #        for condition in conditions:
@@ -203,7 +231,7 @@ class Database:
 ######### select statement #########
         # this should be rewritten to be more efficient
         # (just print selected rows, don't delete non-
-        #  selected then print remaining table)
+        # selected then print remaining table)
 
         for i, attribute in enumerate(joinedTable[0]):
             attrName = attribute.split()[0]
