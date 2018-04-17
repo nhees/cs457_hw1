@@ -29,7 +29,13 @@ class Database:
         filepath = DIRECTORY + self.name + ""
         os.system("rm -rf " + filepath)
 
-    def inner_join(self, tableList, condition):
+    #Inner_join is the function to deal with join functionality for PA3
+    # This function takes 4 paramaters
+    #   self: itself
+    #   tableList: 
+    #   condition: what condition will the join be done on
+    #   joinType: the type of join inner or left outer
+    def inner_join(self, tableList, condition, joinType):
         joinedTable = []
         joinedTable.append(tableList[0][1] + tableList[1][1]) # append attributes
 
@@ -44,7 +50,7 @@ class Database:
         attr2 = words[2].split('.')
 
         # temp debug output
-        print(" | <" + str(attr1) + " " + attrOperator + " " + str(attr2) + ">")
+        #print(" | <" + str(attr1) + " " + attrOperator + " " + str(attr2) + ">")
 
         ####Getting the tables#####
         table1 = tableList[0]
@@ -69,7 +75,9 @@ class Database:
         table2attrIndex = self.find_attr_index(table2[1], table2attr)
 
         # temp debug output
-        print(" | Attr1 index: " + str(table1attrIndex) +" attr2 index: " + str(table2attrIndex))
+        #print(" | Attr1 index: " + str(table1attrIndex) +" attr2 index: " + str(table2attrIndex))
+
+
 
         # NESTED LOOP JOIN
         # PLEASE KEEP IN MIND:
@@ -77,10 +85,21 @@ class Database:
         #   table[1]  : table attributes
         #   table[2:] : table tuples
 
-        for tuple1 in table1: # (inner join, so choice of table is arbitrary)
-            for tuple2 in table2:
+        for tuple1 in table1[2:]: # (inner join, so choice of table is arbitrary)
+            successfulMatch = False
+            for tuple2 in table2[2:]:
+                #if inner join
                 if self.match(tuple1[table1attrIndex], attrOperator, tuple2[table2attrIndex]):
                     joinedTable.append(tuple1 + tuple2) # should be tuple1 UNION (tuple2 - table2attr)
+                    successfulMatch = True
+
+            #if the match wasn't succesful and the joinType
+            #was an outer left join then add the tuples that
+            #are part of the left table that didn't match
+            if not successfulMatch:
+                if(joinType == "l-outer"):
+                    joinedTable.append(tuple1)
+
 
         return joinedTable
 
@@ -127,9 +146,9 @@ class Database:
     def select(self, attributes, tables, conditions):
         joinedTable = []
 
-        print("\n |----->\n |DATA PASSED TO SELECT FUNCTION:\n | Attributes:") # temp debug output
-        for element in attributes:           # temp debug output
-            print(" | <" + element + ">")    # temp debug output
+    #    print("\n |----->\n |DATA PASSED TO SELECT FUNCTION:\n | Attributes:") # temp debug output
+    #    for element in attributes:           # temp debug output
+    #        print(" | <" + element + ">")    # temp debug output
 
         if len(attributes[0]) == 0:
             print("!Error: nothing to select")
@@ -161,72 +180,17 @@ class Database:
 
         # tableList is now a list containing lists which contain a list name and more lists
 
-        print(" | Table:\n | Join type: " + tables[0]) # temp debug output
-        print(" | " + str(tableList))                   # temp debug output
-        print(" | Conditions:")                         # temp debug output
 
         # The join function should now be called
         # it should return joinedTable, the result
         # of the join operation
 
-        if tables[0] == "inner":
-            joinedTable = self.inner_join(tableList, conditions[0])
-        else:
-            print("NON INNER JOINS CURRENTLY NOT IMPLEMENTED")
-            return
+    #    if tables[0] == "inner":
+        joinedTable = self.inner_join(tableList, conditions[0], tables[0])
+    #    else:
+    #        print("NON INNER JOINS CURRENTLY NOT IMPLEMENTED")
+    #        return
 
-######### where statement #########
-#        for condition in conditions:
-#            words = condition.split()
-#            if len(words) != 3:
-#                print("!Failed to select: invalid condition '" + condition + "'")
-#                return
-
-            #attribute to be checked, condition operator, parameter to check against
-#            condAttrPair = words[0].split('.')
-#            condOperator = words[1]
-#            condParamPair = words[2].split('.')
-
-            # temp debug output
-#            print(" | <" + str(condAttrPair) + " " + condOperator + " " + str(condParamPair) + ">")
-
-#            attrIndex = 0
-#            for attribute in joinedTable[0]:
-                #find condition attribute
-#                attrName = attribute.split()[0]
-#                if attrName == condAttrPair[0]:
-                    #attr index has been found, stop looking
-#                    break
-#                attrIndex += 1
-#            if attrIndex == len(joinedTable[0]):
-                #attr wasn't found
-#                print(" |<-----\n") # temp debug output
-#                print("!Failed to select: couldn't apply constraint to attribute '"
-#                      + condAttrPair[0] + "'")
-#                return
-
-            #remove rows from that don't match condition from table being printed
-#            if condOperator == "!=":
-#                for row in joinedTable[1:]:
-#                    if row[attrIndex] == condParamPair[0]:
-#                        joinedTable.remove(row)
-#            elif condOperator == "=":
-#                for row in joinedTable[1:]:
-#                    if row[attrIndex] != condParamPair[0]:
-#                        joinedTable.remove(row)
-#            elif condOperator == "<":
-#                for row in joinedTable[1:]:
-#                    if float(row[attrIndex]) >= float(condParamPair[0]):
-#                        joinedTable.remove(row)
-#            elif condOperator == ">":
-#                for row in joinedTable[1:]:
-#                    if float(row[attrIndex]) <= float(condParamPair[0]):
-#                        joinedTable.remove(row)
-#            else:
-#                print("!Failed to select: unknown operator '" + condOperator + "'")
-#                return
-
-        print(" |<-----\n") # temp debug output
 
 ######### select statement #########
         # this should be rewritten to be more efficient
