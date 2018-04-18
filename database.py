@@ -29,13 +29,14 @@ class Database:
         filepath = DIRECTORY + self.name + ""
         os.system("rm -rf " + filepath)
 
-    #Inner_join is the function to deal with join functionality for PA3
+    #join is the function to deal with join functionality for PA3
     # This function takes 4 paramaters
     #   self: itself
-    #   tableList: 
+    #   tableList: tables to join
     #   condition: what condition will the join be done on
-    #   joinType: the type of join inner or left outer
-    def inner_join(self, tableList, condition, joinType):
+    #   joinType: the type of join (inner or left outer)
+    # It performs the join using a nested loop, then returns the result
+    def join(self, tableList, condition, joinType):
         joinedTable = []
         joinedTable.append(tableList[0][1] + tableList[1][1]) # append attributes
 
@@ -49,9 +50,6 @@ class Database:
         attrOperator = words[1]
         attr2 = words[2].split('.')
 
-        # temp debug output
-        #print(" | <" + str(attr1) + " " + attrOperator + " " + str(attr2) + ">")
-
         ####Getting the tables#####
         table1 = tableList[0]
         table2 = tableList[1]
@@ -60,52 +58,42 @@ class Database:
 
         if attr1[0].lower() == table1[0].lower():
             table1attr = attr1[1].lower()
-            table2attr = attr2[1].lower()   # just assume the other attribute is valid because I'm lazy
+            table2attr = attr2[1].lower()
         elif attr1[0].lower() == table2[0].lower():
             table2attr = attr1[1].lower()
             table1attr = attr2[1].lower()
         else:
             print("!Failed to select: could not match attributes to tables")
 
-        # note that tablex[1] is the attribute list
-        # also note that using tablex[1].index() doesn't work beacuse each attribute
-        # is a string containing both the attribute name and attribute type
-
-        table1attrIndex = self.find_attr_index(table1[1], table1attr)
-        table2attrIndex = self.find_attr_index(table2[1], table2attr)
-
-        # temp debug output
-        #print(" | Attr1 index: " + str(table1attrIndex) +" attr2 index: " + str(table2attrIndex))
-
-
-
-        # NESTED LOOP JOIN
-        # PLEASE KEEP IN MIND:
+        # note that tablex[1] is the attribute list:
         #   table[0]  : table name
         #   table[1]  : table attributes
         #   table[2:] : table tuples
 
-        for tuple1 in table1[2:]: # (inner join, so choice of table is arbitrary)
+        table1attrIndex = self.find_attr_index(table1[1], table1attr)
+        table2attrIndex = self.find_attr_index(table2[1], table2attr)
+
+	# Nested loop join
+        for tuple1 in table1[2:]:
             successfulMatch = False
             for tuple2 in table2[2:]:
                 #if inner join
                 if self.match(tuple1[table1attrIndex], attrOperator, tuple2[table2attrIndex]):
-                    joinedTable.append(tuple1 + tuple2) # should be tuple1 UNION (tuple2 - table2attr)
+                    joinedTable.append(tuple1 + tuple2)
                     successfulMatch = True
 
             #if the match wasn't succesful and the joinType
-            #was an outer left join then add the tuples that
+            #was an outer left join, then add the tuples that
             #are part of the left table that didn't match
             if not successfulMatch:
                 if(joinType == "l-outer"):
                     joinedTable.append(tuple1)
 
-
         return joinedTable
 
 
-    # Converts a string operator into a python operator
-    # and returns the result
+    # Converts an operator stored as a string into
+    # a python operator and returns the result
     def match(self, left, operator, right):
         if operator == "!=":
             if left != right:
@@ -123,7 +111,9 @@ class Database:
             return "?"
         return False
 
-
+    # Functions like python's index() function, only accounting
+    # for the fact that we only care about the first word
+    # (e.g., index("id") should return the index of ["id int"])
     def find_attr_index(self, attributeList, findAttribute):
         for i, element in enumerate(attributeList):
             if element.split()[0].lower() == findAttribute.lower():
@@ -145,10 +135,6 @@ class Database:
     #     prints the remaining elements in the table
     def select(self, attributes, tables, conditions):
         joinedTable = []
-
-    #    print("\n |----->\n |DATA PASSED TO SELECT FUNCTION:\n | Attributes:") # temp debug output
-    #    for element in attributes:           # temp debug output
-    #        print(" | <" + element + ">")    # temp debug output
 
         if len(attributes[0]) == 0:
             print("!Error: nothing to select")
@@ -178,25 +164,10 @@ class Database:
 
             tableList.append(tableBuffer)
 
-        # tableList is now a list containing lists which contain a list name and more lists
-
-
-        # The join function should now be called
-        # it should return joinedTable, the result
-        # of the join operation
-
-    #    if tables[0] == "inner":
-        joinedTable = self.inner_join(tableList, conditions[0], tables[0])
-    #    else:
-    #        print("NON INNER JOINS CURRENTLY NOT IMPLEMENTED")
-    #        return
-
+	# join the tables
+        joinedTable = self.join(tableList, conditions[0], tables[0])
 
 ######### select statement #########
-        # this should be rewritten to be more efficient
-        # (just print selected rows, don't delete non-
-        # selected then print remaining table)
-
         for i, attribute in enumerate(joinedTable[0]):
             attrName = attribute.split()[0]
             if "*" not in attributes and attrName not in attributes:
