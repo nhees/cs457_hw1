@@ -1,7 +1,7 @@
 import os
 from table import Table
 
-DIRECTORY = "PA3/"
+DIRECTORY = "PA4/"
 
 class Database:
 # Creates and Destroys databases
@@ -146,12 +146,15 @@ class Database:
             tablePair = line.split()
             tablePairs.append(tablePair)
 
-        tableList = [] # The grand monstrosity
+        tableList = []
 
         # for each table passed in
         for table in tablePairs: # append to unique table
             tableName = table[0].lower()
-            tableVariable = table[1].lower()
+            if len(table) > 1:
+                tableVariable = table[1].lower()
+            else:
+                tableVariable = ""
 
             currentTable = Table(tableName, self.name)
             tableBuffer = []
@@ -164,8 +167,24 @@ class Database:
 
             tableList.append(tableBuffer)
 
-	# join the tables
-        joinedTable = self.join(tableList, conditions[0], tables[0])
+        # join the tables
+        if len(tablePairs) > 1:
+            joinedTable = self.join(tableList, conditions[0], tables[0])
+        else:
+            joinedTable.append(tableList[0][1])
+
+            for tuple in tableList[0][2:]:
+                if len(conditions) > 0:
+                    words = conditions[0].split()
+                    condAttr = words[0]
+                    condOperator = words[1]
+                    condParam = words[2]
+
+                    if self.match(tuple[self.find_attr_index(tableList[0][1], condAttr)],
+                                  condOperator, condParam):
+                        joinedTable.append(tuple)
+                else:
+                    joinedTable.append(tuple)
 
 ######### select statement #########
         for i, attribute in enumerate(joinedTable[0]):

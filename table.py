@@ -1,6 +1,6 @@
 import os
 
-DIRECTORY = "PA3/"
+DIRECTORY = "PA4/"
 
 class Table:
 # Handles table operations
@@ -35,6 +35,7 @@ class Table:
         #quotes = ''
         #edit the where attr is equal to old value
         #to where set attr is equal to new vlaue
+
         tbFile = open(self.filePath, "r+")
         testmetaData = tbFile.readline()
         metaData = testmetaData.split("|")
@@ -60,6 +61,8 @@ class Table:
                 if oldValue == testline[whereAttrIndex].strip("''"):
                     line = line.replace(testline[setAttrIndex].strip("''"), newValue)
                 tbFile.write(line)
+
+
     # Delete: Deletes a tuple to the table
     # param arguments:
     #       attribute information the tuple must have to be deleted
@@ -86,7 +89,7 @@ class Table:
                 testline = line.split("|")
 
                 if relation == '=':
-                    if testline[attrIndex].strip("''") != value:
+                    if testline[attrIndex].strip("''") != value.strip("''"):
                         tbFile.write(line)
                 elif relation == '<':
                     if float(testline[attrIndex]) > float(value):
