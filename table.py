@@ -30,11 +30,12 @@ class Table:
     #     Ensure that the tuple meets the where clause requirments
     #     if the clause requirements are met then the set attribute
     #     value is changed in that tuple
-    def update(self, setAttr, newValue, whereAttr, oldValue):
-        #print("in the update function")
-        #quotes = ''
+    def update(self, setAttr, newValue, whereAttr, oldValue, inTransaction, table):
+
         #edit the where attr is equal to old value
         #to where set attr is equal to new vlaue
+
+
 
         tbFile = open(self.filePath, "r+")
         testmetaData = tbFile.readline()
@@ -48,19 +49,33 @@ class Table:
         for i in metaData:
              if whereAttr in i:
                  whereAttrIndex = metaData.index(i)
+        if inTransaction:
+            #table.append(self.tname)
+            tablelines = tbFile.readlines()
 
-        lines = tbFile.readlines()
-        tbFile.seek(0)
-        tbFile.truncate()
+            for line in tablelines:
+                templine = line.split("|")
+                if oldValue == templine[whereAttrIndex].strip("''"):
+                    line = line.replace(templine[setAttrIndex].strip("''"), newValue)
 
-        #rewriting the metadata line
-        tbFile.write(testmetaData)
+            table.append(tablelines)
+            print (str(table))
 
-        for line in lines:
-                testline = line.split("|")
-                if oldValue == testline[whereAttrIndex].strip("''"):
-                    line = line.replace(testline[setAttrIndex].strip("''"), newValue)
-                tbFile.write(line)
+            #get a variable to hold table name and contents
+            #NEED TO LOAD TO TABLE
+        else: #if not in transaction mode proceed normally
+            lines = tbFile.readlines()
+            tbFile.seek(0)
+            tbFile.truncate()
+
+            #rewriting the metadata line
+            tbFile.write(testmetaData)
+
+            for line in lines:
+                    testline = line.split("|")
+                    if oldValue == testline[whereAttrIndex].strip("''"):
+                        line = line.replace(testline[setAttrIndex].strip("''"), newValue)
+                    tbFile.write(line)
 
 
     # Delete: Deletes a tuple to the table

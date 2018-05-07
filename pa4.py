@@ -7,6 +7,7 @@ currentDb = "NA"
 DIRECTORY = "PA4/"
 inTransaction = False
 locks = []
+table = []
 
 def main():
     if not os.path.exists(DIRECTORY + "Locks"):
@@ -31,6 +32,7 @@ def parse_line(line):
     global currentDb
     global inTransaction
     global locks
+    global table
 
     words = line.split()
 
@@ -227,7 +229,8 @@ def parse_line(line):
                 if words[6] == "where":
                     whereAttr = words[7]
                     oldValue = words[9].strip("''")
-                    currentTable.update(attr,newValue, whereAttr, oldValue)
+                    table.append(FILE)
+                    currentTable.update(attr,newValue, whereAttr, oldValue, inTransaction, table)
                     print("  Where " + whereAttr + " is: " + oldValue + " ")
                 else:
                     print("Invalid no where command")
