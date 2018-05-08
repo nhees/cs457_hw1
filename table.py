@@ -50,16 +50,17 @@ class Table:
         if inTransaction:
             #table.append(self.tname)
             tablelines = tbFile.readlines()
-            tablecontent= tbFile.readlines()
+            tablecontent= list ()#tbFile.readlines()
 
             for line in tablelines:
+                #for line in tbfile
                 templine = line.split("|")
-                if oldValue == templine[whereAttrIndex].strip("''"):
-                    templine[whereAttrIndex] = newValue
+                if oldValue == templine[setAttrIndex]:
+                    templine[whereAttrIndex] = newValue.strip("''")
                 tablecontent.append(templine)
 
             table.append(tablecontent)
-            print (str(table))
+            self.commit(table) #print (str(table[1]))
 
             #get a variable to hold table name and contents
             #NEED TO LOAD TO TABLE
@@ -71,7 +72,8 @@ class Table:
             #rewriting the metadata line
             tbFile.write(testmetaData)
 
-            for line in lines:
+            if relation == '=':
+                for line in lines:
                     testline = line.split("|")
                     if oldValue == testline[whereAttrIndex].strip("''"):
                         line = line.replace(testline[setAttrIndex].strip("''"), newValue)
@@ -103,8 +105,7 @@ class Table:
         for line in lines:
                 testline = line.split("|")
 
-                if relation == '=':
-                    if testline[attrIndex].strip("''") != value.strip("''"):
+                if testline[attrIndex].strip("''") != value.strip("''"):
                         tbFile.write(line)
                 elif relation == '<':
                     if float(testline[attrIndex]) > float(value):
@@ -172,6 +173,48 @@ class Table:
             wrFile.write(dataToAdd)
 
         return successfulInsert
+
+    def commit(self, table):
+        tbFile = open(self.filePath, "r+")
+        metadata = tbFile.readline()
+
+        tbFile.seek(0)
+        tbFile.truncate()
+
+        #Rewriting the file
+        tbFile.write(metadata)
+        tablecontents = str(table[1])
+
+        #tablecontents = tablecontents.strip ("[]") #strip out the brackets
+        #tablecontents = tablecontents.strip("''") #strip the quotes
+        #tablecontents.split(",")#split on comma
+        addChar = False
+        line = str()
+
+        for index in tablecontents:
+            if (index == "'" and addChar == False):
+                    addChar = True
+            elif (index =="'" and addChar):
+                line.append("|")
+                addChar = False
+            elif addChar:
+                 line.append(index)
+            elif (index == ']' ):
+                tbFile.write(line)
+                index = tablecontents.find("[")
+
+
+        #for()
+        #find the quotes and add the info in the quotes
+
+        print(tablecontents)
+        # read in the table and put in the disk fileP
+
+
+
+
+        # iterate through table and upload to the file correctly
+        #erase the file besides the first line
 
     #adds and attribute to the table
     def add_column(self,type, name, length):
