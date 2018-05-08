@@ -35,8 +35,6 @@ class Table:
         #edit the where attr is equal to old value
         #to where set attr is equal to new vlaue
 
-
-
         tbFile = open(self.filePath, "r+")
         testmetaData = tbFile.readline()
         metaData = testmetaData.split("|")
@@ -52,13 +50,15 @@ class Table:
         if inTransaction:
             #table.append(self.tname)
             tablelines = tbFile.readlines()
+            tablecontent= tbFile.readlines()
 
             for line in tablelines:
                 templine = line.split("|")
                 if oldValue == templine[whereAttrIndex].strip("''"):
-                    line = line.replace(templine[setAttrIndex].strip("''"), newValue)
+                    templine[whereAttrIndex] = newValue
+                tablecontent.append(templine)
 
-            table.append(tablelines)
+            table.append(tablecontent)
             print (str(table))
 
             #get a variable to hold table name and contents
