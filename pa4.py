@@ -7,7 +7,7 @@ currentDb = "NA"
 DIRECTORY = "PA4/"
 inTransaction = False
 locks = []
-table = []
+memBuffer = []
 
 def main():
     if not os.path.exists(DIRECTORY + "Locks"):
@@ -32,7 +32,7 @@ def parse_line(line):
     global currentDb
     global inTransaction
     global locks
-    global table
+    global memBuffer
 
     words = line.split()
 
@@ -170,14 +170,14 @@ def parse_line(line):
                         return
 
                 selectDB = Database(currentDb)
-                selectDB.select(attributes, tables, conditions)
+                selectDB.select(attributes, tables, conditions, inTransaction, memBuffer)
 
         elif words[0].lower() == "use":
             if db_exists(words[1].lower()):
                 currentDb = words[1].lower()
                 print("Using database '" + words[1] + "'")
             else:
-                print("!Failed to use database '" + words[2] + "' because it does not exist")
+                print("!Failed to use database '" + words[1] + "' because it does not exist")
 
         elif words[0].lower() == "alter":
             if words[1].lower() == "table":
@@ -214,9 +214,9 @@ def parse_line(line):
                     if currentTable.tname not in locks:
                         print("  Acquiring lock")
                         if not acquire_lock(currentTable.tname):
+                            # don't do anything: table is locked
                             print("!Error: " + currentTable.tname + " is locked")
                             return
-
 
                 if not inTransaction and os.path.exists(DIRECTORY + "Locks/"
                                                         + currentTable.tname + ".lock"):
@@ -229,8 +229,9 @@ def parse_line(line):
                 if words[6] == "where":
                     whereAttr = words[7]
                     oldValue = words[9].strip("''")
-                    table.append(FILE)
-                    currentTable.update(attr,newValue, whereAttr, oldValue, inTransaction, table)
+                    memBuffer.append(FILE)
+                    currentTable.update(attr,newValue, whereAttr, oldValue,
+                                        inTransaction, memBuffer)
                     print("  Where " + whereAttr + " is: " + oldValue + " ")
                 else:
                     print("Invalid no where command")
@@ -278,13 +279,15 @@ def parse_line(line):
                 print("Releasing lock for table '" + table + "'")
                 del locks[i]
                 os.remove(DIRECTORY + "Locks/" + table + ".lock")
-
+                currentTable = Table(memBuffer[i*2], currentDb)
+                currentTable.writeTable(memBuffer[i*2 + 1])
             print("Ending transaction")
             inTransaction = False
 
         else:
             print("Invalid line: " + line)
 
+# acquire_lock: this function creates the lock file for a transaction.
 def acquire_lock (table):
     filePath = DIRECTORY + "Locks/" + table + ".lock"
 

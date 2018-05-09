@@ -133,7 +133,7 @@ class Database:
     #     the condition list, removes tuples that don't match the condition. Then,
     #     removes all columns with attributes not in the attribute list. Finally,
     #     prints the remaining elements in the table
-    def select(self, attributes, tables, conditions):
+    def select(self, attributes, tables, conditions, inTransaction, memBuffer):
         joinedTable = []
 
         if len(attributes[0]) == 0:
@@ -141,50 +141,55 @@ class Database:
             return
 
 ######### from statement #########
-        tablePairs = [] # [tableName, tableVariable]
-        for line in tables[1:]:
-            tablePair = line.split()
-            tablePairs.append(tablePair)
+        if not inTransaction or tables[1].lower() not in memBuffer:
+            tablePairs = [] # [tableName, tableVariable]
+            for line in tables[1:]:
+                tablePair = line.split()
+                tablePairs.append(tablePair)
 
-        tableList = []
+            tableList = []
 
-        # for each table passed in
-        for table in tablePairs: # append to unique table
-            tableName = table[0].lower()
-            if len(table) > 1:
-                tableVariable = table[1].lower()
-            else:
-                tableVariable = ""
-
-            currentTable = Table(tableName, self.name)
-            tableBuffer = []
-            tableBuffer.append(tableVariable)
-
-            tbFile = open(currentTable.filePath, "r")
-
-            for line in tbFile:
-                tableBuffer.append(line.split("|")[:-1])
-
-            tableList.append(tableBuffer)
-
-        # join the tables
-        if len(tablePairs) > 1:
-            joinedTable = self.join(tableList, conditions[0], tables[0])
-        else:
-            joinedTable.append(tableList[0][1])
-
-            for tuple in tableList[0][2:]:
-                if len(conditions) > 0:
-                    words = conditions[0].split()
-                    condAttr = words[0]
-                    condOperator = words[1]
-                    condParam = words[2]
-
-                    if self.match(tuple[self.find_attr_index(tableList[0][1], condAttr)],
-                                  condOperator, condParam):
-                        joinedTable.append(tuple)
+            # for each table passed in
+            for table in tablePairs: # append to unique table
+                tableName = table[0].lower()
+                if len(table) > 1:
+                    tableVariable = table[1].lower()
                 else:
-                    joinedTable.append(tuple)
+                    tableVariable = ""
+
+                currentTable = Table(tableName, self.name)
+                tableBuffer = []
+                tableBuffer.append(tableVariable)
+
+                tbFile = open(currentTable.filePath, "r")
+
+                for line in tbFile:
+                    tableBuffer.append(line.split("|")[:-1])
+
+                tableList.append(tableBuffer)
+
+            # join the tables
+            if len(tablePairs) > 1:
+                joinedTable = self.join(tableList, conditions[0], tables[0])
+            else:
+                joinedTable.append(tableList[0][1])
+
+                for tuple in tableList[0][2:]:
+                    if len(conditions) > 0:
+                        words = conditions[0].split()
+                        condAttr = words[0]
+                        condOperator = words[1]
+                        condParam = words[2]
+
+                        if self.match(tuple[self.find_attr_index(tableList[0][1], condAttr)],
+                                      condOperator, condParam):
+                            joinedTable.append(tuple)
+                    else:
+                        joinedTable.append(tuple)
+        else:
+            # Triggers if table is in the memory buffer and a transaction is underway:
+            # just load table from memory
+            joinedTable = memBuffer[memBuffer.index(tables[1]) + 1]
 
 ######### select statement #########
         for i, attribute in enumerate(joinedTable[0]):

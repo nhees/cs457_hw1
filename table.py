@@ -26,15 +26,15 @@ class Table:
     # update: changes an attributes value for specific tuples
     # param arguments:
     #       where attribute and needed value as well as attribute to change and new value
+    #       inTransaction, table
+    #       If in a transaction, changes are written to memory buffer
     # algorithm:
     #     Ensure that the tuple meets the where clause requirments
     #     if the clause requirements are met then the set attribute
     #     value is changed in that tuple
     def update(self, setAttr, newValue, whereAttr, oldValue, inTransaction, table):
-
         #edit the where attr is equal to old value
         #to where set attr is equal to new vlaue
-
         tbFile = open(self.filePath, "r+")
         testmetaData = tbFile.readline()
         metaData = testmetaData.split("|")
@@ -47,24 +47,23 @@ class Table:
         for i in metaData:
              if whereAttr in i:
                  whereAttrIndex = metaData.index(i)
+
         if inTransaction:
-            #table.append(self.tname)
+            # changes should be written to memory
             tablelines = tbFile.readlines()
-            tablecontent= list ()#tbFile.readlines()
+            tablecontent = list ()
+            tablecontent.append(metaData[:-1])
 
             for line in tablelines:
-                #for line in tbfile
-                templine = line.split("|")
-                if oldValue == templine[setAttrIndex]:
-                    templine[whereAttrIndex] = newValue.strip("''")
+                templine = line.split("|")[:-1]
+                if oldValue == templine[whereAttrIndex]:
+                    templine[setAttrIndex] = newValue.strip("''")
                 tablecontent.append(templine)
 
             table.append(tablecontent)
-            self.commit(table) #print (str(table[1]))
 
-            #get a variable to hold table name and contents
-            #NEED TO LOAD TO TABLE
-        else: #if not in transaction mode proceed normally
+        # If not in transaction mode proceed normally
+        else:
             lines = tbFile.readlines()
             tbFile.seek(0)
             tbFile.truncate()
@@ -174,47 +173,18 @@ class Table:
 
         return successfulInsert
 
-    def commit(self, table):
+    def writeTable(self, table):
         tbFile = open(self.filePath, "r+")
         metadata = tbFile.readline()
+        tbFile.close()
 
-        tbFile.seek(0)
-        tbFile.truncate()
+        tbFile = open(self.filePath, "w")
+        tbFile.write(metadata[:-1])
+        tbFile.close()
+        # rest of the table is emptied because it will be rewritten
 
-        #Rewriting the file
-        tbFile.write(metadata)
-        tablecontents = str(table[1])
-
-        #tablecontents = tablecontents.strip ("[]") #strip out the brackets
-        #tablecontents = tablecontents.strip("''") #strip the quotes
-        #tablecontents.split(",")#split on comma
-        addChar = False
-        line = str()
-
-        for index in tablecontents:
-            if (index == "'" and addChar == False):
-                    addChar = True
-            elif (index =="'" and addChar):
-                line.append("|")
-                addChar = False
-            elif addChar:
-                 line.append(index)
-            elif (index == ']' ):
-                tbFile.write(line)
-                index = tablecontents.find("[")
-
-
-        #for()
-        #find the quotes and add the info in the quotes
-
-        print(tablecontents)
-        # read in the table and put in the disk fileP
-
-
-
-
-        # iterate through table and upload to the file correctly
-        #erase the file besides the first line
+        for tuple in table[1:]:
+            self.insert(tuple)
 
     #adds and attribute to the table
     def add_column(self,type, name, length):
